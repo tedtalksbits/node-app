@@ -8,9 +8,6 @@ import { pokemon } from './data/pokemon.js';
 import { createDocument } from './lib/createDocument.js';
 const app = express();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -67,6 +64,8 @@ app.get('/download-pdf/:pokemon', (req, res) => {
             <h1>${foundPokemon.name} </h1> <span>${foundPokemon.id}</span>
             <p>${foundPokemon.type}</p>
             <img src="${foundPokemon.img}" />
+            <input type="text" value="${foundPokemon.name}" />
+            <input type="checkbox" checked />
             `;
         pdf.create(html, pdfOptions).toFile(`./pdf/${foundPokemon.name.toLowerCase()}.pdf`, (err, result) => {
             if (err) return console.log(err);
@@ -82,10 +81,23 @@ app.get('/download-pdf/:pokemon', (req, res) => {
 });
 
 app.get('/test/test-pdf', async (req, res) => {
-    const { path: pdfPath } = await createDocument(pokemon[0]);
-    const fullPath = path.join(__dirname, pdfPath);
-    console.log(fullPath);
-    res.download(fullPath);
+    // download created-modified pdf file from the server
+    const file = await createDocument(pokemon[0]);
+
+    console.log(file);
+    res.download(file.path);
+});
+
+app.get('/pokemon/list', (req, res) => {
+    // return a list of pokemon as .csv file with header row
+    const headerRow = Object.keys(pokemon[0]).join(',').toUpperCase();
+    const csv = pokemon.map((pokemon) => Object.values(pokemon).join(',')).join('\n');
+
+    const csvWithHeaderRow = `${headerRow}\n${csv}`;
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=pokemon.csv');
+    res.send(csvWithHeaderRow);
 });
 
 app.listen(3000, () => {
