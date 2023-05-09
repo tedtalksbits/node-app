@@ -8,9 +8,13 @@ import { pokemon } from './data/pokemon.js';
 import { createDocument } from './lib/createDocument.js';
 const app = express();
 
-// app.use(cors());
-// app.use(express.json());
-// app.use(express.urlencoded({ extended: true }));
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// the below proxy setting is required to download images from the remote server
+
+app.set('trust proxy', 1);
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
